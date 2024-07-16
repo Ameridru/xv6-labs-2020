@@ -152,6 +152,18 @@ freeproc(struct proc *p)
   p->state = UNUSED;
 }
 
+// 获取可用进程数量
+int 
+proc_num(void){
+  struct proc* p_ptr;
+  uint64 num = 0;
+  for(p_ptr = proc; p_ptr < &proc[NPROC]; p_ptr++)
+  {
+    if(p_ptr->state != UNUSED) num++; // 计数非UNUSED状态的进程数量
+  }
+  return num;
+}
+
 // Create a user page table for a given process,
 // with no user memory, but with trampoline pages.
 pagetable_t
@@ -290,6 +302,9 @@ fork(void)
   np->cwd = idup(p->cwd);
 
   safestrcpy(np->name, p->name, sizeof(p->name));
+
+  //trace要跟踪子进程的系统调用，需要将trace_mask拷贝到子进程
+  np->trace_mask = p->trace_mask;
 
   pid = np->pid;
 

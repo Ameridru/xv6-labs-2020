@@ -15,7 +15,7 @@ extern char end[]; // first address after kernel.
                    // defined by kernel.ld.
 
 struct run {
-  struct run *next;
+  struct run *next; // 指向下一块空闲内存页
 };
 
 struct {
@@ -37,6 +37,19 @@ freerange(void *pa_start, void *pa_end)
   p = (char*)PGROUNDUP((uint64)pa_start);
   for(; p + PGSIZE <= (char*)pa_end; p += PGSIZE)
     kfree(p);
+}
+
+// 遍历空闲链表，计算空闲内存空间
+int
+freemem_size(void){
+  struct run* run_ptr = kmem.freelist; // 指向空闲链表起点
+  int space = 0; // 空闲页面大小
+  while(run_ptr)
+  {
+    space += PGSIZE;
+    run_ptr = run_ptr->next;
+  }
+  return space;
 }
 
 // Free the page of physical memory pointed at by v,
